@@ -50,7 +50,7 @@ with open('data/day4.txt') as reader:
     for passport in passports:
         passport_dict = dict(field.split(':') for field in passport.split())
         if set(required_field).issubset(set(passport_dict)):
-            validated = [func(passport_dict[key]) for key, func in required_field.items()];
+            validated = [func(passport_dict[key]) for key, func in required_field.items()]
 
             # print(validated)
             # print(reduce(lambda a, b: a and b, validated))

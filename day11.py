@@ -117,5 +117,5 @@ while True:
         break
 
 
-print_dict(new_seat_man, len_rows, len_columns)
+# print_dict(new_seat_man, len_rows, len_columns)
 print([seat for seat in new_seat_man.values()].count('#'))
