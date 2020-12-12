@@ -1,80 +1,121 @@
-import functools
+# ## Part one
+# def print_dict(seat_dict, rows, cols):
+#     for i in range(rows):
+#         print(' '.join([seat_dict[(i, j)] for j in range(cols)]))
+#     print('_______________')
 
-def find_permutations(list, acc):
-    if len(list) < 3:
-        return acc
-    for i in range(len(list)):
-        if i == len(list) - 2:
-            return acc
-        elif list[i + 2] - list[i] <= 3:
-            acc += 1
-            acc += find_permutations([list[i]] + list[i + 2:], 0)
-    return acc
-
-def split_adapters_to_parts(adapters):
-    parts = []
-    i = 0
-    while i < len(adapters) - 1:
-        if adapters[i + 1] - adapters[i] == 3:
-            i += 1
-            continue
-        else:
-            j = i
-            while j < len(adapters) - 1:
-                if adapters[j + 1] - adapters[j] == 3:
-                    break
-                j += 1
-            if len(adapters[i:j + 1]) >= 3:
-                parts.append(adapters[i:j + 1])
-            i = j
-    return parts
-
-#read data
-outlet = [0]
-with open('data/day10.txt') as reader:
-    adapters = [int(line.strip()) for line in reader.readlines()]
+# def get_adjecent_seats(point, seat_dict):
+#     y, x = point
+#     return [seat_dict[(i, j)] for j in range(x - 1, x + 2) for i in range(y - 1, y + 2) if (i, j) in seat_dict and (i, j) != point]
+    
+# def change_seat(point, seat_dict):
+#     seat = seat_dict[point]
+#     if seat == '.':
+#         return '.'
+#     elif seat == 'L' and get_adjecent_seats(point, seat_dict).count('#') == 0:
+#         return '#'
+#     elif seat == '#' and get_adjecent_seats(point, seat_dict).count('#') >= 4:
+#         return 'L'
+#     else:
+#         return seat
     
 
-adapters.sort()
-adapters = outlet + adapters + [adapters[len(adapters) -1] + 3]
-print(adapters)
 
-# print(adapters[:2] + adapters[3:])
 
-# part one
-jolt_diff_1 = 0
-jolt_diff_3 = 0
-for i, adapter in enumerate(adapters):
-    if i == len(adapters) - 1:
+# #read data
+# rows = []
+# with open('data/day11.txt') as reader:
+#     rows = [list(line.strip()) for line in reader.readlines()]
+
+# seat_map = {}
+# for i, row in enumerate(rows):
+#     seat_map.update({(i, j): col for j, col in enumerate(row)})
+
+# len_rows = len(rows)
+# len_columns = len(rows[0])
+
+
+# print_dict(seat_map, len_rows, len_columns)
+
+# new_seat_man = seat_map
+# while True:
+#     seat_map = new_seat_man.copy()
+#     new_seat_man = {point: change_seat(point, seat_map) for point in seat_map}
+#     if seat_map == new_seat_man:
+#         break
+
+
+# print_dict(new_seat_man, len_rows, len_columns)
+# print([seat for seat in new_seat_man.values()].count('#'))
+
+## part two
+
+## Part one
+def print_dict(seat_dict, rows, cols):
+    for i in range(rows):
+        print(' '.join([seat_dict[(i, j)] for j in range(cols)]))
+    print('_______________')
+
+def get_adjecent_seats(point, seat_dict):
+    y, x = point
+    return [seat_dict[(i, j)] for j in range(x - 1, x + 2) for i in range(y - 1, y + 2) if (i, j) in seat_dict and (i, j) != point]
+    
+def sees_occupied_seat(point, seat_dict, threshold):
+    y, x = point
+    directions = [(0, 1), (1, 1), (1, 0), (1, -1), (0, -1), (-1, -1), (-1, 0), (-1, 1)]
+    found = 0
+    for direction in directions:
+        j, i = direction
+        point_to_check = (y + j, x + i)
+        while point_to_check in seat_dict:
+            # print('checking', point, point_to_check)
+            current_seat = seat_dict[point_to_check]
+            found += 1 if current_seat == '#' else 0
+            if found > threshold:
+                return True
+            if current_seat == 'L' or current_seat == '#':
+                break
+            y_1, x_1 = point_to_check
+            point_to_check = (y_1 + j, x_1 + i)
+    return False
+
+    
+def change_seat(point, seat_dict):
+    seat = seat_dict[point]
+    if seat == '.':
+        return '.'
+    elif seat == 'L' and not sees_occupied_seat(point, seat_dict, 0):
+        return '#'
+    elif seat == '#' and  sees_occupied_seat(point, seat_dict, 4):
+        return 'L'
+    else:
+        return seat
+    
+
+
+
+#read data
+rows = []
+with open('data/day11.txt') as reader:
+    rows = [list(line.strip()) for line in reader.readlines()]
+
+seat_map = {}
+for i, row in enumerate(rows):
+    seat_map.update({(i, j): col for j, col in enumerate(row)})
+
+len_rows = len(rows)
+len_columns = len(rows[0])
+
+print_dict(seat_map, len_rows, len_columns)
+loops = 0
+new_seat_man = seat_map
+while True:
+    seat_map = new_seat_man.copy()
+    new_seat_man = {point: change_seat(point, seat_map) for point in seat_map}
+    loops += 1
+    if seat_map == new_seat_man:
         break
-    elif adapters[i+1] - adapter == 3:
-        jolt_diff_3 += 1
-    elif adapters[i + 1] - adapter == 1:
-        jolt_diff_1 += 1
-
-print('Part one', jolt_diff_3 * jolt_diff_1)
-
-parts = split_adapters_to_parts(adapters)
 
 
-print(adapters)
-print(parts)
-print([find_permutations(part, 1) for part in parts])
-print(functools.reduce(lambda a, b : a * b ,[find_permutations(part, 1) for part in parts]))
-
-exit()
-
-
-# part two
-arrangements = 1  # original list
-arrangements += find_permutations(adapters, [0])
-print(arrangements)
-part_one = adapters[:4]
-part_two = adapters[4:]
-# for i, adapter in enumerate(adapters):
-#     for j in range(i + 2, len(adapters)):
-#         if adapters[j] - adapter <= 3:
-#             arrangements += find_permutations()
-#         else:
-#             break
-# print(arrangements)
+print_dict(new_seat_man, len_rows, len_columns)
+print([seat for seat in new_seat_man.values()].count('#'))
