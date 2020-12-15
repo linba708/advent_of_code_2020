@@ -1,16 +1,27 @@
 import math
 import functools
 
-def Euclid(*integers):
-    if type(integers[0])==list or type(integers[0])==tuple:
-        integers = integers[0]
-    if len(integers) == 2:
-        a,b = integers[0],integers[1]
-        while b != 0:
-            a,b = b, a%b
-        return a
-    else:
- 	    return Euclid(integers[0],Euclid(integers[1:]))
+# from https://rosettacode.org/wiki/Chinese_remainder_theorem#Python_3.6
+def chinese_remainder(tuple_list):
+    sum = 0
+    prod = functools.reduce(lambda a,b: a*b, [t[0] for t in tuple_list])
+    for n_i, a_i in tuple_list:
+        p = prod // n_i
+        sum += a_i * mul_inv(p, n_i) * p
+    return sum % prod
+ 
+ 
+ 
+def mul_inv(a, b):
+    b0 = b
+    x0, x1 = 0, 1
+    if b == 1: return 1
+    while a > 1:
+        q = a // b
+        a, b = b, a%b
+        x0, x1 = x1 - q * x0, x0
+    if x1 < 0: x1 += b0
+    return x1
 
 # Part one
 #read data
@@ -36,65 +47,12 @@ print(busses)
 
 #part two
 with open('data/day13.txt') as reader:
-
     file_input = [line.strip() for line in reader.readlines()]
 
-# arrival = int(file_input[0])
-busses = [buss for buss in file_input[1].split(',')]
-lines = [(int(buss), i) for i, buss in enumerate(busses) if buss != 'x']
 
-increments = [buss[0] for buss in lines]
-adjusted_increments = [(buss[0] * buss[1], buss[1]) if buss[1] in increments else (buss[0], buss[1]) for i, buss in enumerate(lines)]
-adjusted_increments.sort(key=lambda tup: tup[0])
-print('increments', adjusted_increments)
-print(adjusted_increments[-1])
-
-
-
-
-largest_buss =  adjusted_increments[-1]
-print(largest_buss)
-multiple = 1
-to_check = 1068781
-print(Euclid([line[0] for line in lines]))
-print(functools.reduce(lambda a, b: a + b, [(to_check + buss[1]) % buss[0] for buss in lines]))
-
-# while True:
-#     to_check = (largest_buss[0] * multiple) - largest_buss[1]
-#     if (functools.reduce(lambda a, b: a + b, [(to_check + buss[1]) % buss[0] for buss in lines])) == 0:
-#         break
-#     # print(to_check)
-#     # print(multiple)
-#     # print([(to_check + buss[1]) % buss[0] for buss in lines])
-#     multiple += 1
-# print([to_check + buss[1] % buss[0] for buss in lines])
-
-# print(functools.reduce(lambda a, b: a + b, [(to_check + buss[1]) % buss[0] for buss in lines]))
-# print(busses)
-print('_______________')
-print(to_check)
-print(lines)
-
-# code from https://github.com/q-viper/Adevent-Of-Code-2020
-#Chinese Remainder Theorem
-
-# LINES = file_input
-# print(file_input)
-
-# busses = ["x" if x == "x" else int(x) for x in LINES[1].split(",")]
-
-# print(busses)
-# def part2():
-#     mods = {bus: -i % bus for i, bus in enumerate(busses) if bus != "x"}
-#     print(mods)
-#     vals = list(reversed(sorted(mods)))
-#     val = mods[vals[0]]
-#     r = vals[0]
-#     print(vals, val, r)
-#     for b in vals[1:]:
-#         while val % b != mods[b]:
-#             val += r
-#         r *= b
-#     return val
-# print(part2())
-
+busses = [(int(buss), i) for i, buss in enumerate(file_input[1].split(',')) if buss != 'x']
+busses.sort(key=lambda buss: -buss[1])
+last_buss_offset = busses[0][1]
+# adjust_a_for_busses so that
+busses_adjusted = [(buss[0], int(last_buss_offset) - int(buss[1])) for buss in busses]
+print('answer', chinese_remainder(busses_adjusted) - last_buss_offset)
